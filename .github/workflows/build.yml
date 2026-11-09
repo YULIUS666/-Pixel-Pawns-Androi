@@ -40,7 +40,19 @@ jobs:
           mkdir -p extracted
           unzip -q Pixel-Pawns-Offline-Android.zip -d extracted
           PROJECT_DIR="$(dirname "$(find extracted -name settings.gradle -print -quit)")"
-          test -n "$PROJECT_DIR"
+
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "Android project not found"
+            exit 1
+          fi
+
+          cat >> "$PROJECT_DIR/app/build.gradle" <<'EOF'
+          configurations.configureEach {
+              exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+              exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+          }
+          EOF
+
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           gradle -p "$PROJECT_DIR" :app:assembleDebug
 
